@@ -12,3 +12,9 @@ logs/*
 
 # macOS
 .DS_Store
+
+# Node (promptfoo)
+node_modules/
+
+# Local scratch (not part of the lab)
+Claude outputs/

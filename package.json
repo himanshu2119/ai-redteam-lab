@@ -1,0 +1,18 @@
+{
+  "name": "ai-redteam-lab",
+  "description": "AI red-team lab: promptfoo is used to attack the HelpDesk Bot",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/himanshu2119/ai-redteam-lab.git"
+  },
+  "bugs": {
+    "url": "https://github.com/himanshu2119/ai-redteam-lab/issues"
+  },
+  "homepage": "https://github.com/himanshu2119/ai-redteam-lab#readme",
+  "type": "commonjs",
+  "scripts": {},
+  "devDependencies": {
+    "promptfoo": "^0.125.1"
+  }
+}
