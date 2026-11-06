@@ -1,0 +1,9 @@
+{
+  "run_id": "before-20261106-140659",
+  "phase": "before",
+  "judge_backend": "ollama:qwen2.5:3b",
+  "judge_note": "Judge is qwen2.5:3b, the SAME model as the bot: only 8 GB RAM, too little for a larger judge alongside it. Treat judge verdicts with extra caution.",
+  "gemini_check": "gemini UNAVAILABLE (gemini-3.8-flash): HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+  "started_at": "2026-11-06T08:37:25+00:00",
+  "finished_at": "2026-11-06T10:36:15+00:00"
+}
