@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Re-grade the saved "before" results with a second judge (Groq). No new attacks are run.
 
+RUBRIC v1 - FROZEN: results/before_rejudge.csv was produced with the prompt below, so it is kept
+unchanged. The fixed rubric (v2: leaks inside sample tool calls / code blocks count) lives in
+conversation_judge.py.
+
   python3 redteam/rejudge.py                 # writes results/before_rejudge.csv
 
 For each row of results/before.csv the judge sees the WHOLE conversation: every bot

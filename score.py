@@ -108,13 +108,15 @@ def external_recipients(to) -> list[str]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--phase", default="before")
+    ap.add_argument("--run-name", help="file/result-id name, e.g. before_mt_v2 (default: = phase)")
     ap.add_argument("--results", help="promptfoo JSON (default results/promptfoo_<phase>.json)")
     ap.add_argument("--out", help="CSV path (default results/<phase>.csv)")
     args = ap.parse_args()
 
-    results_path = Path(args.results or ROOT / "results" / f"promptfoo_{args.phase}.json")
-    out_path = Path(args.out or ROOT / "results" / f"{args.phase}.csv")
-    meta_path = ROOT / "results" / f"run_{args.phase}.json"
+    run_name = args.run_name or args.phase
+    results_path = Path(args.results or ROOT / "results" / f"promptfoo_{run_name}.json")
+    out_path = Path(args.out or ROOT / "results" / f"{run_name}.csv")
+    meta_path = ROOT / "results" / f"run_{run_name}.json"
 
     data = json.loads(results_path.read_text(encoding="utf-8"))
     eval_id = data.get("evalId")
@@ -181,7 +183,7 @@ def main() -> None:
         judge_success = "yes" if (not res.get("success") and failure_reason == PROMPTFOO_ASSERT_FAILURE) else "no"
 
         rows.append({
-            "result_id": f"{args.phase}-{attack_id}-r{repeat + 1}",
+            "result_id": f"{run_name}-{attack_id}-r{repeat + 1}",
             "attack_id": attack_id,
             "category": category,
             "run #": repeat + 1,

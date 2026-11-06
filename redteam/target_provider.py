@@ -6,6 +6,9 @@
 
 The output shown to the judge is the bot's reply PLUS a summary of the tool calls it
 made, so the judge can see e.g. a send_email to an outside address.
+Crescendo sends those outputs back as conversation history, so the summary is
+STRIPPED from every assistant message before the history goes to the bot: the bot
+only ever sees its own real reply text (a real chat.py user would never send it).
 
 Every request is also written to logs/promptfoo_target.jsonl together with the
 promptfoo eval id, attack id and repeat index, so score.py can match each promptfoo
@@ -27,36 +30,51 @@ BOT_URL = os.environ.get("BOT_URL", "http://127.0.0.1:8000").rstrip("/")
 TIMEOUT = float(os.environ.get("BOT_TIMEOUT", "300"))
 
 
-def _split_conversation(prompt: str) -> tuple[str, list[dict]]:
+TOOL_SUMMARY_MARKER = "\n\n[TOOL CALLS MADE BY THE BOT]\n"
+
+
+def _strip_tool_summary(text: str) -> tuple[str, bool]:
+    """Remove the summary _format_output appended (always the LAST block of an output)."""
+    if TOOL_SUMMARY_MARKER not in text:
+        return text, False
+    return text.rpartition(TOOL_SUMMARY_MARKER)[0], True
+
+
+def _split_conversation(prompt: str) -> tuple[str, list[dict], int]:
+    """Return (latest user message, history for the bot, number of summaries stripped)."""
     try:
         msgs = json.loads(prompt)
     except (json.JSONDecodeError, TypeError):
-        return prompt, []
+        return prompt, [], 0
     if not (isinstance(msgs, list) and msgs and all(isinstance(m, dict) and "role" in m for m in msgs)):
-        return prompt, []
-    turns = [
-        {"role": m["role"], "content": str(m.get("content", ""))}
-        for m in msgs
-        if m["role"] in ("user", "assistant")
-    ]
+        return prompt, [], 0
+    turns, stripped = [], 0
+    for m in msgs:
+        if m["role"] not in ("user", "assistant"):
+            continue
+        content = str(m.get("content", ""))
+        if m["role"] == "assistant":
+            content, was_stripped = _strip_tool_summary(content)
+            stripped += was_stripped
+        turns.append({"role": m["role"], "content": content})
     if not turns or turns[-1]["role"] != "user":
-        return prompt, []
-    return turns[-1]["content"], turns[:-1]
+        return prompt, [], 0
+    return turns[-1]["content"], turns[:-1], stripped
 
 
 def _format_output(reply: str, tool_calls: list[dict]) -> str:
     if not tool_calls:
-        return f"{reply}\n\n[TOOL CALLS MADE BY THE BOT]\nnone"
+        return f"{reply}{TOOL_SUMMARY_MARKER}none"
     lines = [
         f"- {tc['tool']}({json.dumps(tc['arguments'], ensure_ascii=False)}) -> {tc['status']}"
         for tc in tool_calls
     ]
-    return f"{reply}\n\n[TOOL CALLS MADE BY THE BOT]\n" + "\n".join(lines)
+    return f"{reply}{TOOL_SUMMARY_MARKER}" + "\n".join(lines)
 
 
 def call_api(prompt, options, context):
     test_vars = (context or {}).get("vars", {}) or {}
-    message, history = _split_conversation(prompt)
+    message, history, stripped = _split_conversation(prompt)
 
     started = time.time()
     body = json.dumps({"message": message, "history": history}).encode()
@@ -81,6 +99,8 @@ def call_api(prompt, options, context):
         "request_id": data.get("request_id"),
         "message": message,
         "history_len": len(history),
+        "tool_summaries_stripped": stripped,
+        "history_has_tool_summary": any("[TOOL CALLS MADE BY THE BOT]" in t["content"] for t in history),
         "reply": reply,
         "tool_calls": tool_calls,
         "retrieved_docs": data.get("retrieved_docs", []),
