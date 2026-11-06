@@ -29,7 +29,11 @@ log "Bot OK at $BOT_URL (mitigation=$mitigation). Run id: $RUN_ID"
 
 # --- 2. choose ONE judge for the whole run ---
 note=""
-if gemini_status=$(python3 redteam/judge_provider.py --check-gemini); then
+gemini_status="not checked"
+if [ "${JUDGE_BACKEND:-}" = "groq" ]; then   # JUDGE_BACKEND=groq ./redteam/run.sh ...
+  groq_status=$(python3 redteam/judge_provider.py --check-groq) || { log "ERROR: $groq_status"; exit 1; }
+  log "Judge check: $groq_status -> using Groq for the whole run (attacker stays local qwen2.5:3b)."
+elif gemini_status=$(python3 redteam/judge_provider.py --check-gemini); then
   export JUDGE_BACKEND=gemini
   log "Judge check: $gemini_status -> using Gemini for the whole run."
 else
