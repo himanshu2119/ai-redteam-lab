@@ -108,7 +108,7 @@ def run_tool(name: str, arguments, request_id: str) -> dict:
         arguments = {"_raw": arguments}
 
     status = "ok"
-    block_reason = mitigation.check_tool_call(name, arguments)
+    block_reason = mitigation.check_tool_call(name, arguments, request_id)
     if block_reason:
         status, result = "blocked", f"Tool call blocked: {block_reason}"
     elif name not in TOOLS:

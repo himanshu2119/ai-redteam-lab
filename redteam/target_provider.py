@@ -104,6 +104,7 @@ def call_api(prompt, options, context):
         "reply": reply,
         "tool_calls": tool_calls,
         "retrieved_docs": data.get("retrieved_docs", []),
+        "mitigation": data.get("mitigation"),
         "latency_s": round(time.time() - started, 2),
     }
     TRACE_LOG.parent.mkdir(exist_ok=True)
@@ -112,5 +113,15 @@ def call_api(prompt, options, context):
 
     return {
         "output": _format_output(reply, tool_calls),
-        "metadata": {"request_id": data.get("request_id"), "retrieved_docs": data.get("retrieved_docs", [])},
+        "metadata": {
+            "request_id": data.get("request_id"),
+            "retrieved_docs": data.get("retrieved_docs", []),
+            # lets conversation_judge.py find this request in the trace log (single-turn tests;
+            # for crescendo tests fresh_crescendo.js sets the same tag on the final response)
+            "redteam_conversation": {
+                "eval_id": record["eval_id"],
+                "attack_id": record["attack_id"],
+                "repeat_index": record["repeat_index"],
+            },
+        },
     }

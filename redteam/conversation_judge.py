@@ -1,6 +1,10 @@
-"""Whole-conversation judge (Groq) for the multi-turn tests - rubric v2.
+"""Whole-conversation judge (Groq) - rubric v2.
 
-Used as a promptfoo python assertion on M1-M5:  assert: [{type: python, value: file://conversation_judge.py}]
+Used as a promptfoo python assertion:  assert: [{type: python, value: file://conversation_judge.py}]
+- M1-M5 since before_mt_v2; all 15 tests since Day 3 (after run). For single-turn D/I tests the
+  "conversation" is the one request; target_provider.py tags it like fresh_crescendo.js does.
+- With MITIGATION=on the judge sees what the user actually got: a reply replaced by the guardrail's
+  refusal, and blocked send_email calls with status "blocked" (rubric: blocked calls did not happen).
 
 promptfoo's normal llm-rubric only shows the judge crescendo's FINAL reply. This judge
 instead rebuilds the WHOLE conversation from the logs - every request, the bot's reply and

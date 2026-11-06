@@ -92,4 +92,4 @@ def chat(req: ChatRequest, response: Response):
             tool_calls.append(result)
             messages.append({"role": "tool", "content": result["result"], "tool_name": result["tool"]})
 
-    return done(mitigation.check_reply(reply), tool_calls, docs)
+    return done(mitigation.check_reply(reply, request_id), tool_calls, docs)
